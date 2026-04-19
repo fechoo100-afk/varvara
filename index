@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Varvara im Museum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Минималистичный шрифт -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+    :root {
+      --red:   #E52323;
+      --yellow:#F5C400;
+      --blue:  #1A47B8;
+      --black: #111111;
+      --gray:  #888888;
+      --white: #FFFFFF;
+      --border:#E2E2E2;
+      --off:   #F7F7F5;
+      --font: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --radius: 16px;
+    }
+    html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--white);
+      color: var(--black);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      position: sticky;
+      top:0;
+      z-index:10;
+      background: var(--white);
+      border-bottom: 1.5px solid var(--border);
+      padding: 10px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .logo-wrap {
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .logo-text {
+      font-size:16px;
+      font-weight:700;
+      letter-spacing:-0.3px;
+      line-height:1.15;
+    }
+    .logo-text span { color: var(--red); }
+    .logo-icon {
+      width:34px; height:34px;
+    }
+    .progress-box {
+      flex:1;
+      max-width:180px;
+      text-align:right;
+    }
+    .progress-label {
+      font-size:11px;
+      color:var(--gray);
+      font-weight:600;
+      margin-bottom:4px;
+    }
+    .progress-track {
+      width:100%;
+      height:5px;
+      border-radius:999px;
+      background:var(--border);
+      overflow:hidden;
+    }
+    .progress-fill {
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background:var(--red);
+      transition:width 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    /* HERO */
+    .hero {
+      padding:20px 16px 14px;
+      border-bottom:1.5px solid var(--border);
+    }
+    .hero h1 {
+      font-size:clamp(26px, 7vw, 40px);
+      font-weight:700;
+      line-height:1.05;
+      letter-spacing:-1px;
+      margin-bottom:8px;
+    }
+    .hero h1 .r { color:var(--red); }
+    .hero h1 .b { color:var(--blue); }
+    .hero p {
+      font-size:14px;
+      color:var(--gray);
+      max-width:360px;
+      line-height:1.5;
+    }
+
+    /* GRID */
+    .grid-section {
+      padding:18px 16px 20px;
+    }
+    .grid-title {
+      font-size:10px;
+      letter-spacing:1.6px;
+      text-transform:uppercase;
+      color:var(--gray);
+      font-weight:700;
+      margin-bottom:12px;
+    }
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:10px;
+    }
+    @media (min-width:480px) {
+      .grid { grid-template-columns:repeat(3, minmax(0,1fr)); }
+    }
+    @media (min-width:768px) {
+      .hero, .grid-section, footer { padding-inline:28px; }
+      .grid { grid-template-columns:repeat(4, minmax(0,1fr)); }
+    }
+
+    /* CARD */
+    .card {
+      background:var(--off);
+      border-radius:var(--radius);
+      border:1.5px solid var(--border);
+      overflow:hidden;
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      transition:transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+      -webkit-tap-highlight-color:transparent;
+      user-select:none;
+    }
+    .card:active { transform:scale(0.96); }
+    .card.found {
+      background:var(--white);
+      border-color:var(--black);
+    }
+    .card-img {
+      position:relative;
+      aspect-ratio:3/2;
+      background:#eee;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .card-img img {
+      max-width:100%;
+      max-height:100%;
+      object-fit:cover;
+      display:block;
+      width:100%;
+      height:100%;
+    }
+    /* небольшая серая пелена, пока не найдено */
+    .card:not(.found) .card-img::after {
+      content:"";
+      position:absolute;
+      inset:0;
+      background:rgba(255,255,255,0.55);
+    }
+    .card-search {
+      position:absolute;
+      top:8px; left:8px;
+      background:var(--black);
+      color:#fff;
+      width:24px; height:24px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:14px;
+      z-index:2;
+      opacity:0.8;
+    }
+    .card-check {
+      position:absolute;
+      top:8px; right:8px;
+      background:var(--yellow);
+      color:#000;
+      width:24px; height:24px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:14px;
+      z-index:2;
+      opacity:0;
+      transform:scale(0.5);
+      transition:opacity 0.2s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .card.found .card-check {
+      opacity:1;
+      transform:scale(1);
+    }
+
+    .card-body {
+      padding:8px 10px 10px;
+    }
+    .card-name {
+      font-size:13px;
+      font-weight:600;
+      letter-spacing:-0.2px;
+    }
+    .card-sub {
+      font-size:11px;
+      color:var(--gray);
+      margin-top:2px;
+    }
+    .card-bottom {
+      margin-top:8px;
+    }
+    .play-btn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      padding:7px 12px;
+      border-radius:999px;
+      border:1.5px solid var(--black);
+      background:var(--white);
+      font-size:12px;
+      font-weight:600;
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+      min-width:80px;
+    }
+    .play-btn.playing {
+      background:var(--blue);
+      border-color:var(--blue);
+      color:#fff;
+    }
+
+    /* TOAST */
+    .toast {
+      position:fixed;
+      bottom:20px;
+      left:50%;
+      transform:translateX(-50%) translateY(60px);
+      background:var(--black);
+      color:#fff;
+      padding:8px 16px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:600;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity 0.3s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      z-index:20;
+    }
+    .toast.show {
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
+
+    /* CELEBRATION */
+    .overlay {
+      position:fixed;
+      inset:0;
+      background:rgba(255,255,255,0.96);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:32px 24px;
+      text-align:center;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity 0.25s ease;
+      z-index:30;
+    }
+    .overlay.show {
+      opacity:1;
+      pointer-events:auto;
+    }
+    .overlay h2 {
+      font-size:clamp(26px,7vw,38px);
+      font-weight:700;
+      letter-spacing:-0.8px;
+      line-height:1.1;
+      margin-bottom:12px;
+    }
+    .overlay h2 span { color:var(--red); }
+    .overlay p {
+      font-size:15px;
+      color:var(--gray);
+      margin-bottom:24px;
+    }
+    .overlay-btn {
+      padding:12px 26px;
+      border-radius:999px;
+      border:none;
+      background:var(--black);
+      color:#fff;
+      font-size:14px;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    footer {
+      padding:14px 16px 20px;
+      border-top:1.5px solid var(--border);
+      text-align:center;
+    }
+    .reset-btn {
+      border-radius:999px;
+      border:1.5px solid var(--border);
+      background:none;
+      padding:7px 16px;
+      font-size:11px;
+      color:var(--gray);
+      cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <svg class="logo-icon" viewBox="0 0 36 36" aria-hidden="true">
+      <rect x="1" y="1" width="34" height="34" rx="10" fill="none" stroke="#111" stroke-width="1.5"/>
+      <circle cx="14" cy="14" r="6" stroke="#E52323" stroke-width="2"/>
+      <line x1="18.5" y1="18.5" x2="24" y2="24" stroke="#111" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="26" cy="9" r="2" fill="#F5C400"/>
+      <circle cx="28" cy="15" r="1.5" fill="#1A47B8"/>
+    </svg>
+    <div class="logo-text">Varvara<br><span>im Museum</span></div>
+  </div>
+  <div class="progress-box">
+    <div class="progress-label" id="progressLabel">0 von 6 gefunden</div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Finde die<br><span class="r">Instrumente</span><br>im Museum<span class="b">!</span></h1>
+  <p>Varvara sieht das Bild, sucht das Instrument im Raum und tippt, wenn sie es gefunden hat.</p>
+</section>
+
+<section class="grid-section">
+  <div class="grid-title">Instrumente heute</div>
+  <div class="grid" id="grid"></div>
+</section>
+
+<footer>
+  <button class="reset-btn" type="button" onclick="resetGame()">↺ Spiel zurücksetzen</button>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="overlay">
+  <h2>Super, <span>Varvara!</span></h2>
+  <p>Du hast alle Instrumente gefunden 🎵</p>
+  <button class="overlay-btn" type="button" onclick="resetGame()">Nochmal spielen</button>
+</div>
+
+<script>
+  // ЗДЕСЬ ТЫ МОЖЕШЬ ПОДМЕНЯТЬ ФОТО И ЗВУК
+  // Лучше всего – реальные фото из Musikinstrumenten-Museum
+  // (просто меняешь img и audio на свои URL).
+  const instruments = [
+    {
+      id: "clavicembalo",
+      title: "Cembalo",
+      subtitle: "Tasteninstrument",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Harpsichord_-_Musikinstrumenten-Museum_Berlin.jpg/640px-Harpsichord_-_Musikinstrumenten-Museum_Berlin.jpg",
+      audio: ""
+    },
+    {
+      id: "violine",
+      title: "Violine",
+      subtitle: "Streichinstrument",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Violin_VL100.png/320px-Violin_VL100.png",
+      audio: ""
+    },
+    {
+      id: "floete",
+      title: "Flöte",
+      subtitle: "Holzblasinstrument",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Western_concert_flute_1.jpg/320px-Western_concert_flute_1.jpg",
+      audio: ""
+    },
+    {
+      id: "trompete",
+      title: "Trompete",
+      subtitle: "Blechblasinstrument",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Trumpet_bw.jpg/320px-Trumpet_bw.jpg",
+      audio: ""
+    },
+    {
+      id: "orgel",
+      title: "Orgel",
+      subtitle: "Mighty Wurlitzer / Orgel",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Berlin_Musikinstrumentenmuseum_3.jpg/640px-Berlin_Musikinstrumentenmuseum_3.jpg",
+      audio: ""
+    },
+    {
+      id: "harfe",
+      title: "Harfe",
+      subtitle: "Saiteninstrument",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Harp.png/320px-Harp.png",
+      audio: ""
+    }
+  ];
+
+  let found = new Set();
+  let currentAudio = null;
+  let currentId = null;
+
+  function buildGrid() {
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    instruments.forEach(inst => {
+      const isFound = found.has(inst.id);
+      const isPlaying = currentId === inst.id;
+      const card = document.createElement("div");
+      card.className = "card" + (isFound ? " found" : "");
+      card.dataset.id = inst.id;
+
+      card.innerHTML = `
+        <div class="card-img">
+          <img src="${inst.img}" alt="${inst.title}" loading="lazy">
+          <div class="card-search">🔍</div>
+          <div class="card-check">✓</div>
+        </div>
+        <div class="card-body">
+          <div class="card-name">${inst.title}</div>
+          <div class="card-sub">${inst.subtitle}</div>
+          <div class="card-bottom">
+            ${isFound ? `
+              <button class="play-btn ${isPlaying ? "playing" : ""}" type="button"
+                onclick="playSound(event, '${inst.id}')">
+                ${isPlaying ? "⏸" : "▶"}
+              </button>
+            ` : ""}
+          </div>
+        </div>
+      `;
+
+      card.addEventListener("click", () => {
+        if (!found.has(inst.id)) markFound(inst.id);
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  function markFound(id) {
+    found.add(id);
+    showToast("Gefunden!");
+    updateProgress();
+    buildGrid();
+    if (found.size === instruments.length) {
+      document.getElementById("overlay").classList.add("show");
+    }
+  }
+
+  function playSound(event, id) {
+    event.stopPropagation();
+    const inst = instruments.find(i => i.id === id);
+    if (!inst.audio) {
+      showToast("Ton noch nicht hinzugefügt");
+      return;
+    }
+
+    if (currentAudio && currentId === id) {
+      currentAudio.pause();
+      currentAudio = null;
+      currentId = null;
+      buildGrid();
+      return;
+    }
+
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+      currentId = null;
+    }
+
+    const audio = new Audio(inst.audio);
+    currentAudio = audio;
+    currentId = id;
+    audio.play().catch(() => showToast("Audio Fehler"));
+    buildGrid();
+    audio.addEventListener("ended", () => {
+      currentAudio = null;
+      currentId = null;
+      buildGrid();
+    });
+  }
+
+  function updateProgress() {
+    const label = document.getElementById("progressLabel");
+    const fill = document.getElementById("progressFill");
+    const total = instruments.length;
+    const n = found.size;
+    label.textContent = `${n} von ${total} gefunden`;
+    fill.style.width = (n / total * 100) + "%";
+  }
+
+  function showToast(text) {
+    const t = document.getElementById("toast");
+    t.textContent = text;
+    t.classList.add("show");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove("show"), 2000);
+  }
+
+  function resetGame() {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+      currentId = null;
+    }
+    found = new Set();
+    document.getElementById("overlay").classList.remove("show");
+    updateProgress();
+    buildGrid();
+  }
+
+  buildGrid();
+  updateProgress();
+</script>
+
+</body>
+</html>
